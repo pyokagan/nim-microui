@@ -22,7 +22,7 @@ SOFTWARE.
 
 ------
 
-nim-microui is a port of the original work of microui, licensed as follows:
+nim-microui is a port of microui, licensed as follows:
 
 ```
 Copyright (c) 2020 rxi

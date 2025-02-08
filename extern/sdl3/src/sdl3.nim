@@ -525,7 +525,7 @@ proc SDL_SetAudioStreamPutCallback* ( stream: SDL_AudioStream, callback: SDL_Aud
 proc SDL_DestroyAudioStream* ( stream: SDL_AudioStream ): void {.importc.}
 proc SDL_OpenAudioDeviceStream* ( devid: SDL_AudioDeviceID, spec: ptr SDL_AudioSpec, callback: SDL_AudioStreamCallback, userdata: pointer ): SDL_AudioStream {.importc.}
 proc SDL_OpenAudioDeviceStream* ( devid: SDL_AudioDeviceID, spec: SDL_AudioSpec, callback: SDL_AudioStreamCallback, userdata: pointer ): SDL_AudioStream =
-  SDL_OpenAudioDeviceStream(devid, spec.addr, callback, userdata)
+  SDL_OpenAudioDeviceStream(devid, spec.unsafeAddr, callback, userdata)
 
 type SDL_AudioPostmixCallback* = proc (userdata: pointer; spec: ptr SDL_AudioSpec; buffer: ptr cfloat; buflen: cint) {.cdecl.}
 
@@ -760,7 +760,7 @@ type
     SDL_COLOR_PRIMARIES_CUSTOM = 31
 
 const
-  SDL_PIXELFORMAT_RGBA32* = SDL_PIXELFORMAT_ABGR8888
+  SDL_PIXELFORMAT_RGBA32* = when cpuEndian == littleEndian: SDL_PIXELFORMAT_ABGR8888 else: SDL_PIXELFORMAT_RGBA8888
   SDL_PIXELFORMAT_ARGB32* = SDL_PIXELFORMAT_BGRA8888
   SDL_PIXELFORMAT_BGRA32* = SDL_PIXELFORMAT_ARGB8888
   SDL_PIXELFORMAT_ABGR32* = SDL_PIXELFORMAT_RGBA8888
@@ -1138,7 +1138,7 @@ type
     reserved*: pointer
 
 proc SDL_CreateSurface* ( width,height: int, format: SDL_PixelFormat ): ptr SDL_Surface {.importc.}
-proc SDL_CreateSurfaceFrom* ( width,height: int, format: SDL_PixelFormat, pixels: pointer, pitch: int): ptr SDL_Surface {.importc.}
+proc SDL_CreateSurfaceFrom* ( width,height: cint, format: SDL_PixelFormat, pixels: pointer, pitch: cint): ptr SDL_Surface {.importc.}
 proc SDL_DestroySurface* ( surface: ptr SDL_Surface ): void {.importc.}
 proc SDL_GetSurfaceProperties* ( surface: ptr SDL_Surface ): SDL_PropertiesID {.importc.}
 proc SDL_SetSurfaceColorspace* ( surface: ptr SDL_Surface, colorspace: SDL_Colorspace ): bool {.importc.}
@@ -1364,7 +1364,7 @@ proc SDL_GetWindowTitle* ( window: SDL_Window ): cstring {.importc.}
 proc SDL_SetWindowIcon* ( window: SDL_Window, icon: ptr SDL_Surface ): bool {.importc.}
 proc SDL_SetWindowPosition* ( window: SDL_Window, x,y: int ): bool {.importc.}
 proc SDL_GetWindowPosition* ( window: SDL_Window, x,y: var int ): bool {.importc.}
-proc SDL_SetWindowSize* ( window: SDL_Window, w,h: int ): bool {.importc, discardable.}
+proc SDL_SetWindowSize* ( window: SDL_Window, w,h: cint): bool {.importc, discardable.}
 proc SDL_GetWindowSize* ( window: SDL_Window, w,h: var int ): bool {.importc.}
 proc SDL_GetWindowSafeArea* ( window: SDL_Window, rect: var SDL_Rect ): bool {.importc.}
 proc SDL_SetWindowAspectRatio* ( window: SDL_Window, min_aspect,max_aspect: cfloat ): bool {.importc, discardable.}
@@ -1402,7 +1402,7 @@ proc SDL_GetWindowMouseGrab* ( window: SDL_Window ): bool {.importc.}
 proc SDL_GetGrabbedWindow* (): SDL_Window {.importc.}
 proc SDL_SetWindowMouseRect* ( window: SDL_Window, rect: ptr SDL_Rect ): bool {.importc, discardable.}
 proc SDL_SetWindowMouseRect* ( window: SDL_Window, rect: SDL_Rect ): bool {.discardable.} =
-  SDL_SetWindowMouseRect(window, rect.addr)
+  SDL_SetWindowMouseRect(window, rect.unsafeAddr)
 proc SDL_GetWindowMouseRect* ( window: SDL_Window ): ptr SDL_Rect {.importc.}
 proc SDL_SetWindowOpacity* ( window: SDL_Window, opacity: cfloat ): bool {.importc, discardable.}
 proc SDL_GetWindowOpacity* ( window: SDL_Window ): cfloat {.importc.}
@@ -5226,7 +5226,7 @@ proc SDL_RenderViewportSet* ( renderer: SDL_Renderer ): bool {.importc.}
 proc SDL_GetRenderSafeArea* ( renderer: SDL_Renderer, rect: var SDL_Rect ):bool {.importc.}
 proc SDL_SetRenderClipRect* ( renderer: SDL_Renderer, rect: ptr SDL_Rect ): bool {.importc, discardable.}
 proc SDL_SetRenderClipRect* ( renderer: SDL_Renderer, rect: SDL_Rect ): bool {.discardable.} =
-  SDL_SetRenderClipRect(renderer, rect.addr)
+  SDL_SetRenderClipRect(renderer, rect.unsafeAddr)
 proc SDL_GetRenderClipRect* ( renderer: SDL_Renderer, rect: var SDL_Rect ): bool {.importc.}
 proc SDL_RenderClipEnabled* ( renderer: SDL_Renderer ): bool {.importc.}
 proc SDL_SetRenderScale* ( renderer: SDL_Renderer, scaleX,scaleY: cfloat ): bool {.importc, discardable.}
@@ -5246,19 +5246,19 @@ proc SDL_RenderLine* ( renderer: SDL_Renderer, x1,y1,x2,y2: cfloat ): bool {.imp
 proc SDL_RenderLines* ( renderer: SDL_Renderer, points: openarray[SDL_FPoint] ): bool {.importc, discardable.}
 proc SDL_RenderRect* ( renderer: SDL_Renderer, rect: ptr SDL_FRect ): bool {.importc, discardable.}
 proc SDL_RenderRect* ( renderer: SDL_Renderer, rect: SDL_FRect ): bool {.discardable.} =
-  SDL_RenderRect(renderer, rect.addr)
+  SDL_RenderRect(renderer, rect.unsafeAddr)
 proc SDL_RenderRects* ( renderer: SDL_Renderer, rects: openarray[SDL_FRect] ): bool {.importc, discardable.}
 proc SDL_RenderRects* ( renderer: SDL_Renderer, rects: ptr[SDL_FRect], count: int ): bool {.importc, discardable.}
 proc SDL_RenderFillRect* ( renderer: SDL_Renderer, rect: ptr SDL_FRect ): bool {.importc, discardable.}
 proc SDL_RenderFillRect* ( renderer: SDL_Renderer, rect: SDL_FRect ): bool {.discardable.} =
-  SDL_RenderFillRect(renderer, rect.addr)
+  SDL_RenderFillRect(renderer, rect.unsafeAddr)
 proc SDL_RenderFillRects* ( renderer: SDL_Renderer, rects: openarray[SDL_FRect] ): bool {.importc, discardable.}
 proc SDL_RenderTexture* ( renderer: SDL_Renderer, texture: SDL_Texture, srcrect,dstrect: ptr SDL_FRect ): bool {.importc, discardable.}
 proc SDL_RenderTextureRotated* ( renderer: SDL_Renderer, texture: SDL_Texture, srcrect, dstrect: ptr SDL_FRect, angle: cdouble, center: ptr SDL_FPoint, flip: SDL_FlipMode ): bool {.importc, discardable.}
 proc SDL_RenderTextureAffine* ( renderer: SDL_Renderer, texture: SDL_Texture, srcrect: ptr SDL_FRect, origin,right,down: ptr SDL_FPoint): bool {.importc, discardable.}
 proc SDL_RenderTextureTiled* ( renderer: SDL_Renderer, texture: SDL_Texture, srcrect: ptr SDL_FRect, scale: cfloat, dstrect: ptr SDL_FRect ): bool {.importc, discardable.}
 proc SDL_RenderTexture9Grid* ( renderer: SDL_Renderer, texture: SDL_Texture, srcrect: ptr SDL_FRect, left_width, right_width, top_height, bottom_height, scale: cfloat, dstrect: ptr SDL_FRect): bool {.importc, discardable.}
-proc SDL_RenderGeometry* ( renderer: SDL_Renderer, texture: SDL_Texture, vertices: ptr[SDL_Vertex], num_vertices: int, indices: ptr[cint], num_indices: int ): bool {.importc, discardable.}
+proc SDL_RenderGeometry* ( renderer: SDL_Renderer, texture: SDL_Texture, vertices: ptr[SDL_Vertex], num_vertices: cint, indices: ptr[cint], num_indices: cint ): bool {.importc, discardable.}
 proc SDL_RenderGeometry* ( renderer: SDL_Renderer, texture: SDL_Texture, vertices: openarray[SDL_Vertex], indices: openarray[cint] ): bool {.importc, discardable.}
 proc SDL_RenderGeometryRaw* ( renderer: SDL_Renderer, texture: SDL_Texture, xy: ptr cfloat, xy_stride: int, color: ptr SDL_FColor, color_stride: int, uv: ptr cfloat, uv_stride: int, num_vertices: int, indices: pointer, num_indices: int, size_indices: int ): bool {.importc, discardable.}
 proc SDL_RenderReadPixels* ( renderer: SDL_Renderer, rect: ptr SDL_Rect ): ptr SDL_Surface {.importc.}
